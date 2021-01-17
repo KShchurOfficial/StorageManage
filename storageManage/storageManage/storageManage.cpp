@@ -2,9 +2,11 @@
 
 using namespace std;
 
-const int dictSize = 9; // размер словарного запаса программы
+const int dictSize = 8; // размер словарного запаса программы
+const int parSize = 4;
 library dictionary[dictSize]{ "help", "showAll", "searchI", // сам словарный запас программы
-"searchN", "add", "delete", "redact", "move", "shut" };
+"searchN", "add", "delete", "redact", "shut" };
+library parameterNames[parSize]{ "name", "price", "quantity", "index" };
 
 int main()
 {
@@ -34,47 +36,116 @@ int main()
     if (username != "guest")
         isAdmin = true;
     cout << " User " << username << " has started the work." << endl;
-    int result = 0; // переменная, значения которой являются режимами работы программы.
+    int result = 0, parRes = 0; // переменная, значения которой являются режимами работы программы.
     instructions(result, isAdmin); // "instructions" - функция для вывода инструкций в зависимости от режима работы программы и наличия прав админа
+    string workingStr, clone;
     getline(cin, dialog);
-    while (result != 8) // режим 8 - завершение работы программы
+    while (result != 7) // режим 8 - завершение работы программы
     {
         result = commRecognition(dialog, dictionary, dictSize); // "commRecognition" - функция для распознания введеной пользователем команды
-        instructions(result, isAdmin);
         switch (result)
         {
         case 10:
+            instructions(result, isAdmin);
             getline(cin, dialog);
             break;
         case 0:
+            instructions(result, isAdmin);
             getline(cin, dialog);
             break;
         case 1:
-            // Функция для вывода информации из всех файлов.
-            /* Принцип работы:
-            * Программа в папке с текстовыми файлами по очереди сверху вниз открывает каждый файл,
-            * читает в нем строку и выводит ее в консоль. */
+        {
+            ifstream house;
+            string queueOnOut = "AAAA", fWay = "warehouses/" + queueOnOut + ".txt";
+            house.open(fWay);
+            while (house.is_open())
+            {
+                while (!house.eof()) {
+                    getline(house, dialog);
+                    cout << dialog << endl;
+                }
+                house.close();
+                queueOnOut = bruteForce(queueOnOut, 1);
+                fWay = "warehouses/" + queueOnOut + ".txt";
+                house.open(fWay);
+            }
+            cout << endl << " Your next command: ";
+            getline(cin, dialog);
             break;
+        }  
         case 2:
-            // Функция для поиска по индексу.
-            /* Принцип работы
-            * Программа так же по очереди построчно читает каждый файл,
-            * затем инвертирует строку, читает первое слово и снова его инвертирует
-            * (то есть читает индекс, который стоит в конце строки). Затем программа
-            * сверяет полученный индекс с входными данными и если индекс совпадает,
-            * то инвертирует всю прочитанную строку и выводит в консоль.
-            */
+        {
+            instructions(result, isAdmin);
+            getline(cin, dialog);
+            workingStr = " " + searchIn("searchI", dialog);
+            clone = workingStr;
+            for (int i = 0; i < clone.length(); i++)
+            {
+                if (clone[i] == '_')
+                {
+                    clone[i] = ' ';
+                }
+            }
+            cout << endl << " Result: \n - " << clone << endl;
+            cout << endl << " Your next command: ";
+            getline(cin, dialog);
             break;
+        }
         case 3:
-            // Функция для поиска по имени.
-            /* Принцип работы:
-            * Прорамма в каждом по очереди файле читает сперва первое слово
-            * (то есть читает имя товара, находящееся в самом начале каждой строки),
-            * затем сверяет его с входными данными и если слова совпадают, выводит
-            * сперва это слово, а потом дочитывает остальную строку и тоже выводит в консоль.
-            */
+        {
+            instructions(result, isAdmin);
+            getline(cin, dialog);
+            workingStr = " " + searchIn("searchN", dialog) + " ";
+            clone = workingStr;
+            for (int i = 0; i < clone.length(); i++)
+            {
+                if (clone[i] == '_')
+                {
+                    clone[i] = ' ';
+                }
+            }
+            cout << endl << " Result: \n - " << clone << endl;
+            cout << endl << " Your next command: ";
+            getline(cin, dialog);
             break;
+        }
         case 4:
+            if (isAdmin)
+            {
+                instructions(result, isAdmin);
+                string strToAddIn, whAddress;
+                int numbOfWH = 0;
+                for (int i = 0; i < 3; i++)
+                {
+                    cout << endl << " Enter the " << parameterNames[i].theWord << " of merchandice: _____\b\b\b\b\b";
+                    getline(cin, dialog);
+                    if (!i)
+                    {
+                        for (int i = 0; i < dialog.length(); i++)
+                        {
+                            if (dialog[i] == ' ')
+                                dialog[i] = '_';
+                        }
+                    }
+                    strToAddIn += dialog + ' ';
+                }
+                cout << " Enter the number of warehouse: ";
+                cin >> numbOfWH;
+                numbOfWH -= 1;
+                whAddress = "warehouses/";
+                whAddress += bruteForce("AAAA", numbOfWH);
+                whAddress += ".txt";
+                addition(whAddress, strToAddIn);
+                cout << endl << " Addition was completed successfully.\n Your next command: ";
+                cin.get();
+                getline(cin, dialog);
+            }
+            else
+            {
+                instructions(result, isAdmin);
+                getline(cin, dialog);
+            }
+            break;
             // Функция для добавления новой информации.
             /* Принцип работы:
             * Программа запрашивает информацию о товаре через пробел
@@ -82,41 +153,115 @@ int main()
             * запрашивает номер склада, а потом переводит номер склада в имя файла
             * и добавляет новую строчку в конец файла и присваивает новому товару
             * его персональный индекс.
+            * 
+            * ifstream house("AAAB.txt");
+            string kostil;
+            cout << "Please enter name of staf:";//имя
+                cin >> kostil;
+                house << kostil;
+                house << " ";
+            cout << "Please enter price:";//стоимость
+                cin >> kostil;
+                house << kostil;
+                house << " ";
+                cout << "Please enter name of staf:";//каличество
+                cin >> kostil;
+                house << kostil;
+                house << " ";
+
+                house.close();
             */
             break;
         case 5:
-            // Функция для удаления информации
-            /* Принцип работы:
-            * Программа просит сперва найти интересующую строку по имени или индексу.
-            * Если этот шаг уже выполнен, то программа стирает строку, а строки, идущие после,
-            * должны перезаписаться на позицию выше.
-            */
+            if (isAdmin)
+            {
+                if (workingStr.length() == 0)
+                {
+                    instructions(result, isAdmin);
+                    getline(cin, dialog);
+                }
+                else
+                {
+                    string address = findingAdrs(workingStr);
+                    string connectWord, strNum;
+                    for (int i = 0; i < address.length(); i++)
+                    {
+                        if (address[i] == ' ')
+                        {
+                            for (int j = i + 1; j < address.length(); j++)
+                            {
+                                strNum += address[j];
+                            }
+                            break;
+                        }
+                        connectWord += address[i];
+                    }
+                    int strNumTrans = stoi(strNum);
+                    deletingValue(connectWord, strNumTrans);
+                    workingStr = "";
+                    cout << endl << " Deleting was completed successfully " << endl
+                         << endl << " Your next command: ";
+                    getline(cin, dialog);
+                }
+            }
+            else
+            {
+                instructions(result, isAdmin);
+                getline(cin, dialog);
+            }
             break;
         case 6:
-            // Функция для редактирования информации
-            /* Принцип работы:
-            * Программа по-прежнему предлагает найти интересующую строку по имени/индексу.
-            * Если этот шаг уже выполнен, то программа запрашивает изменяемый параметр.
-            * Каждый параметр в программе имеет свой номер, и после ввода параметра программа
-            * переводит его в число. Полученное число - кол-во слов, которые нужно пропустить до того,
-            * как программа достигнет позиции с нужным параметром. После запрашивается новое значение
-            * для параметра и значение параметра обновляется этим словом.
-            */
+            if (isAdmin)
+            {
+                if (workingStr.length() == 0)
+                {
+                    instructions(result, isAdmin);
+                    getline(cin, dialog);
+                }
+                else
+                {
+                    string address = findingAdrs(workingStr);
+                    string connectWord, strNum;
+                    for (int i = 0; i < address.length(); i++)
+                    {
+                        if (address[i] == ' ')
+                        {
+                            for (int j = i+1; j < address.length(); j++)
+                            {
+                                strNum += address[j];
+                            }
+                            break;
+                        }
+                        connectWord += address[i];
+                    }
+                    int strNumTrans = stoi(strNum);
+                    cout << "\n Enter the parameter you want to redact.\n --> ( note: data about merchandice"
+                        << " writed in next order: name->price->quantity->index )\n Your choice: ";
+                    getline(cin, dialog);
+                    parRes = commRecognition(dialog, parameterNames, parSize);
+                    cout << " Enter new value: ";
+                    getline(cin, dialog);
+                    if(parRes == 0)
+                    {
+                        for (int i = 0; i < dialog.length(); i++)
+                        {
+                            if (dialog[i] == ' ')
+                                dialog[i] = '_';
+                        }
+                    }
+                    workingStr = strRedacting(connectWord, workingStr, dialog, strNumTrans, parRes);
+                    cout << endl << " Your next command: ";
+                    getline(cin, dialog);
+                }
+            }
+            else
+            {
+                instructions(result, isAdmin);
+                getline(cin, dialog);
+            }
             break;
         case 7:
-            // Функция для перемещения товара из одного склада на другой
-            /* Принцип работы:
-            * Программа запрашивает найти нужную строку, затем программа просит ввести
-            * номер склада, на который нужно переместить товар. Строку программа записывает в спец.буфер.
-            * Файлы являются складами и именуются по типу AAAAA.
-            * Каждая буква имеет свой ACSII-код. Номер склада, вводимый пользователем,
-            * прибавляется к ASCII-значению последней буквы. Как только значение буквы становится равным 90
-            * (то есть буква теперь не А, а Z), прибавляется единица к предыдущей букве,
-            * а последней буквой вновь становится A. Таким образом, автоматически
-            * изменяется адрес подключаемого файла. После изменения адреса файла переносимая информация
-            * из спец.буфера записывается в конец открытого файла.
-            */
-            break;
-        }
+            instructions(result, isAdmin);
+        }  
     }
 }
